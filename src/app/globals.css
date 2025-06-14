@@ -23,6 +23,40 @@
   background: #9ca3af;
 }
 
+/* Thin scrollbar utility */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Global styles */
 * {
   box-sizing: border-box;
@@ -161,6 +195,318 @@ body {
 .kanban-column.drag-over {
   border-color: #0ea5e9;
   background: #f0f9ff;
+}
+
+/* Enhanced Drag & Drop Styles */
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: rotate(3deg);
+  opacity: 0.9;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 2px solid #3b82f6;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+}
+
+.drag-preview {
+  width: 250px;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+}
+
+/* Kanban Board Enhanced Styles */
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 8px;
+}
+
+.kanban-column-enhanced {
+  background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 600px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.kanban-column-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  border-radius: 12px 12px 0 0;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.kanban-column-enhanced.drag-over::before {
+  transform: scaleX(1);
+}
+
+.kanban-column-enhanced.drag-over {
+  border-color: #3b82f6;
+  background: linear-gradient(145deg, #eff6ff, #dbeafe);
+  transform: scale(1.02);
+  box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05);
+}
+
+.drop-zone-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  background: rgba(59, 130, 246, 0.1);
+  border: 2px dashed #3b82f6;
+  border-radius: 8px;
+  padding: 20px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+
+/* Dual Sidebar Styles */
+.main-sidebar {
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border-right: 1px solid #e2e8f0;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  z-index: 100;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.project-sidebar {
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+  border-right: 1px solid #e2e8f0;
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  z-index: 90;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.03);
+}
+
+.sidebar-transition {
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Task Card Enhanced Styles */
+.task-card-enhanced {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: grab;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.task-card-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+}
+
+.task-card-enhanced:hover::before {
+  transform: scaleY(1);
+}
+
+.task-card-enhanced:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.task-card-enhanced:active {
+  cursor: grabbing;
+}
+
+.task-card-enhanced.dragging {
+  opacity: 0.4;
+  transform: scale(0.95) rotate(3deg);
+  z-index: 10;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Smooth animations for better UX */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.bounce-in {
+  animation: bounceIn 0.5s ease-out;
+}
+
+/* Organization Dropdown Styles */
+.organization-dropdown .ant-dropdown-menu {
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  padding: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.organization-dropdown .ant-dropdown-menu-item {
+  border-radius: 8px;
+  padding: 0;
+  margin: 2px 0;
+  border: none;
+  background: transparent;
+}
+
+.organization-dropdown .ant-dropdown-menu-item:hover {
+  background: transparent;
+}
+
+.organization-dropdown .ant-dropdown-menu-item-divider {
+  margin: 8px 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Sidebar Icon Styles */
+.sidebar-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-icon:hover::before {
+  opacity: 1;
+}
+
+.sidebar-icon.active {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.sidebar-icon.active::before {
+  opacity: 1;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+}
+
+/* Project/Board Card Enhanced Styles */
+.project-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.project-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+}
+
+.project-card.selected::before {
+  transform: scaleY(1);
+}
+
+.project-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Layout */
+@media (max-width: 1024px) {
+  .project-sidebar {
+    display: none;
+  }
+  
+  .main-content {
+    margin-left: 80px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-sidebar {
+    width: 60px !important;
+  }
+  
+  .main-content {
+    margin-left: 60px !important;
+  }
 }
 
 /* Priority indicators */

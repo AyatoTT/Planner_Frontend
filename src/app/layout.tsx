@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import { Inter } from 'next/font/google';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
@@ -85,7 +85,6 @@ export default function RootLayout({
               <Layout.Content className="flex-1">
                 {children}
               </Layout.Content>
-              <Footer />
             </Layout>
           </ConfigProvider>
         </AntdRegistry>

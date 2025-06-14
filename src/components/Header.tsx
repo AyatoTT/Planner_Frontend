@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Layout, Menu, Button, Avatar, Dropdown, Space, Typography } from 'antd';
-import { 
-  UserOutlined, 
-  LogoutOutlined, 
+import { Layout, Button, Avatar, Dropdown, Space, Typography } from 'antd';
+import type { MenuProps } from 'antd';
+import {
+  UserOutlined,
+  LogoutOutlined,
   SettingOutlined,
-  DashboardOutlined,
-  MenuOutlined
+  DashboardOutlined
 } from '@ant-design/icons';
 import { tokenManager, authApi } from '@/lib/api';
 import type { User } from '@/types';
@@ -40,28 +40,32 @@ export default function Header({ user, onLogout }: HeaderProps) {
       router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if API call fails, clear local token
       tokenManager.removeToken();
       setIsAuthenticated(false);
       router.push('/');
     }
   };
 
-  const userMenuItems = [
+  const handleNavigation = (path: string) => {
+    router.push(path);
+  };
+
+  const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
       icon: <UserOutlined />,
       label: 'Profile',
-      onClick: () => router.push('/profile'),
+      onClick: () => handleNavigation('/profile'),
     },
     {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
-      onClick: () => router.push('/settings'),
+      onClick: () => handleNavigation('/settings'),
     },
     {
-      type: 'divider' as const,
+      type: 'divider',
+      key: 'divider',
     },
     {
       key: 'logout',
@@ -71,86 +75,89 @@ export default function Header({ user, onLogout }: HeaderProps) {
     },
   ];
 
-  const mainMenuItems = [
-    {
-      key: '/',
-      label: 'Home',
-    },
-    {
-      key: '/workspace',
-      label: 'Workspace',
-    },
-  ];
-
-  const selectedKeys = [pathname];
-
   return (
-    <AntHeader className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-      <div className="flex items-center space-x-8">
-        {/* Logo */}
-        <div 
-          className="flex items-center cursor-pointer"
-          onClick={() => router.push('/')}
-        >
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-            <DashboardOutlined className="text-white text-lg" />
+      <AntHeader className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+        <div className="flex items-center gap-8">
+          {/* Logo */}
+          <div
+              className="flex items-center cursor-pointer"
+              onClick={() => handleNavigation('/')}
+          >
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+              <DashboardOutlined className="text-white text-lg" />
+            </div>
+            <Text className="text-xl font-bold text-gray-900">Tax Planner</Text>
           </div>
-          <Text className="text-xl font-bold text-gray-900">Tax Planner</Text>
+
+          {/* Custom Navigation */}
+          {isAuthenticated && (
+              <div className="flex items-center gap-6">
+                <button
+                    onClick={() => handleNavigation('/')}
+                    className={`px-2 py-1 text-sm font-medium rounded-[5px] transition-colors border-0 bg-transparent ${
+                        pathname === '/'
+                            ? 'text-blue-600'
+                            : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  Home
+                </button>
+                <button
+                    onClick={() => handleNavigation('/workspace')}
+                    className={`px-2 py-1 text-sm font-medium rounded-[5px] transition-colors border-0 bg-transparent ${
+                        pathname === '/workspace'
+                            ? 'text-blue-600'
+                            : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  Workspace
+                </button>
+              </div>
+          )}
         </div>
 
-        {/* Navigation Menu - Only show if authenticated */}
-        {isAuthenticated && (
-          <Menu
-            mode="horizontal"
-            selectedKeys={selectedKeys}
-            items={mainMenuItems}
-            className="border-none bg-transparent flex-1"
-            onClick={({ key }) => router.push(key)}
-          />
-        )}
-      </div>
-
-      {/* Right Side */}
-      <div className="flex items-center space-x-4">
-        {isAuthenticated && user ? (
-          // Authenticated User Menu
-          <Dropdown
-            menu={{ items: userMenuItems }}
-            placement="bottomRight"
-            trigger={['click']}
-          >
-            <Space className="cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-              <Avatar
-                size="small"
-                src={user.avatarUrl}
-                icon={<UserOutlined />}
-                className="bg-blue-600"
-              />
-              <Text className="hidden sm:inline font-medium">{user.name}</Text>
-            </Space>
-          </Dropdown>
-        ) : (
-          // Unauthenticated Menu
-          !isAuthenticated && (
-            <Space>
-              <Button
-                type="text"
-                onClick={() => router.push('/login')}
-                className="font-medium"
+        {/* Right Side */}
+        <div className="flex items-center gap-4">
+          {isAuthenticated && user ? (
+              <Dropdown
+                  menu={{ items: userMenuItems }}
+                  placement="bottomRight"
+                  trigger={['click']}
+                  overlayClassName="min-w-[200px]"
               >
-                Sign In
-              </Button>
-              <Button
-                type="primary"
-                onClick={() => router.push('/register')}
-                className="font-medium"
-              >
-                Get Started
-              </Button>
-            </Space>
-          )
-        )}
-      </div>
-    </AntHeader>
+                <Space className="cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded-lg transition-colors">
+                  <Avatar
+                      size="small"
+                      src={user.avatarUrl}
+                      icon={<UserOutlined />}
+                      className="bg-blue-600"
+                  />
+                  <Text className="hidden sm:inline font-medium text-sm">
+                    {user.name}
+                  </Text>
+                </Space>
+              </Dropdown>
+          ) : (
+              !isAuthenticated && (
+                  <Space>
+                    <Button
+                        type="text"
+                        onClick={() => handleNavigation('/login')}
+                        className="font-medium px-3 py-1 h-auto text-sm"
+                    >
+                      Sign In
+                    </Button>
+                    <Button
+                        type="primary"
+                        onClick={() => handleNavigation('/register')}
+                        className="font-medium px-4 py-1 h-auto text-sm bg-blue-600 hover:bg-blue-700"
+                    >
+                      Get Started
+                    </Button>
+                  </Space>
+              )
+          )}
+        </div>
+      </AntHeader>
   );
-} 
+}

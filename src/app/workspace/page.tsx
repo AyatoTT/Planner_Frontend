@@ -1,19 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Select, Input, Spin, message, Card, Empty, Dropdown } from 'antd';
-import { 
-  ProjectOutlined, 
-  PlusOutlined, 
-  SearchOutlined, 
+import { Layout, Input, Spin, message, Empty, Button, Select } from 'antd';
+import {
+  SearchOutlined,
   FilterOutlined,
   AppstoreOutlined,
   UnorderedListOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  SettingOutlined,
-  TeamOutlined,
-  MoreOutlined
+  PlusOutlined
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { Project, Board, Task, TaskStatus, TaskPriority, Organization } from '@/types';
@@ -23,33 +17,35 @@ import TaskModal from '@/components/TaskModal';
 import OrganizationModal from '@/components/OrganizationModal';
 import ProjectModal from '@/components/ProjectModal';
 import BoardModal from '@/components/BoardModal';
+import MainSidebar from '@/components/MainSidebar';
+import ProjectSidebar from '@/components/ProjectSidebar';
 
-const { Sider, Content } = Layout;
+const { Content } = Layout;
 const { Option } = Select;
 
 export default function WorkspacePage() {
   const router = useRouter();
-  
+
   // State
-  const [collapsed, setCollapsed] = useState(false);
+  const [mainSidebarCollapsed, setMainSidebarCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [boards, setBoards] = useState<Board[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [statuses, setStatuses] = useState<TaskStatus[]>([]);
-  
+
   // Selected items
   const [selectedOrganization, setSelectedOrganization] = useState<string>('');
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [selectedBoard, setSelectedBoard] = useState<string>('');
-  
+
   // UI state
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
-  
+
   // Modal states
   const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -101,7 +97,7 @@ export default function WorkspacePage() {
       setLoading(true);
       const response = await organizationsApi.getAll();
       setOrganizations(response.data || response);
-      
+
       // Auto-select first organization if available
       if (response.data?.length > 0 || response.length > 0) {
         const orgsList = response.data || response;
@@ -121,11 +117,11 @@ export default function WorkspacePage() {
       const response = await projectsApi.getAll();
       // Filter projects by selected organization
       const allProjects = response.data || response;
-      const filteredProjects = selectedOrganization 
+      const filteredProjects = selectedOrganization
         ? allProjects.filter((p: Project) => p.organization.id === selectedOrganization)
         : allProjects;
       setProjects(filteredProjects);
-      
+
       // Auto-select first project if available
       if (filteredProjects.length > 0) {
         setSelectedProject(filteredProjects[0].id);
@@ -144,7 +140,7 @@ export default function WorkspacePage() {
     try {
       const response = await projectsApi.getBoards(projectId);
       setBoards(response.data || response);
-      
+
       // Auto-select first board if available
       if (response.data?.length > 0 || response.length > 0) {
         const boardsList = response.data || response;
@@ -190,10 +186,10 @@ export default function WorkspacePage() {
         boardId: selectedBoard,
         statusId: statuses[0]?.id || '', // Default to first status
       });
-      
+
       message.success('Задача создана');
       setIsTaskModalVisible(false);
-      
+
       // Reload tasks
       if (selectedProject && selectedBoard) {
         loadTasks(selectedProject, selectedBoard);
@@ -210,7 +206,7 @@ export default function WorkspacePage() {
       message.success('Задача обновлена');
       setIsTaskModalVisible(false);
       setEditingTask(null);
-      
+
       // Reload tasks
       if (selectedProject && selectedBoard) {
         loadTasks(selectedProject, selectedBoard);
@@ -225,7 +221,9 @@ export default function WorkspacePage() {
     try {
       await tasksApi.delete(taskId);
       message.success('Задача удалена');
-      
+      setIsTaskModalVisible(false);
+      setEditingTask(null);
+
       // Reload tasks
       if (selectedProject && selectedBoard) {
         loadTasks(selectedProject, selectedBoard);
@@ -239,7 +237,8 @@ export default function WorkspacePage() {
   const handleTaskStatusChange = async (taskId: string, newStatusId: string) => {
     try {
       await tasksApi.updateStatus(taskId, newStatusId);
-      
+      message.success('Статус задачи обновлен');
+
       // Reload tasks
       if (selectedProject && selectedBoard) {
         loadTasks(selectedProject, selectedBoard);
@@ -250,7 +249,6 @@ export default function WorkspacePage() {
     }
   };
 
-  // Organization management
   const handleCreateOrganization = async (data: { name: string; description?: string }) => {
     try {
       await organizationsApi.create(data);
@@ -265,7 +263,7 @@ export default function WorkspacePage() {
 
   const handleUpdateOrganization = async (data: { name: string; description?: string }) => {
     if (!editingOrganization) return;
-    
+
     try {
       await organizationsApi.update(editingOrganization.id, data);
       message.success('Организация обновлена');
@@ -280,7 +278,7 @@ export default function WorkspacePage() {
 
   const handleDeleteOrganization = async () => {
     if (!editingOrganization) return;
-    
+
     try {
       await organizationsApi.delete(editingOrganization.id);
       message.success('Организация удалена');
@@ -293,10 +291,12 @@ export default function WorkspacePage() {
     }
   };
 
-  // Project management
   const handleCreateProject = async (data: { name: string; description?: string; organizationId: string }) => {
     try {
-      await projectsApi.create(data);
+      await projectsApi.create({
+        ...data,
+        organizationId: selectedOrganization,
+      });
       message.success('Проект создан');
       setIsProjectModalVisible(false);
       loadProjects();
@@ -308,9 +308,12 @@ export default function WorkspacePage() {
 
   const handleUpdateProject = async (data: { name: string; description?: string; organizationId: string }) => {
     if (!editingProject) return;
-    
+
     try {
-      await projectsApi.update(editingProject.id, data);
+      await projectsApi.update(editingProject.id, {
+        name: data.name,
+        description: data.description,
+      });
       message.success('Проект обновлен');
       setIsProjectModalVisible(false);
       setEditingProject(null);
@@ -323,7 +326,7 @@ export default function WorkspacePage() {
 
   const handleDeleteProject = async () => {
     if (!editingProject) return;
-    
+
     try {
       await projectsApi.delete(editingProject.id);
       message.success('Проект удален');
@@ -336,10 +339,12 @@ export default function WorkspacePage() {
     }
   };
 
-  // Board management
   const handleCreateBoard = async (data: { name: string; viewType?: string }) => {
-    if (!selectedProject) return;
-    
+    if (!selectedProject) {
+      message.error('Выберите проект для создания доски');
+      return;
+    }
+
     try {
       await boardsApi.create({
         ...data,
@@ -356,7 +361,7 @@ export default function WorkspacePage() {
 
   const handleUpdateBoard = async (data: { name: string; viewType?: string }) => {
     if (!editingBoard) return;
-    
+
     try {
       await boardsApi.update(editingBoard.id, data);
       message.success('Доска обновлена');
@@ -373,7 +378,7 @@ export default function WorkspacePage() {
 
   const handleDeleteBoard = async () => {
     if (!editingBoard) return;
-    
+
     try {
       await boardsApi.delete(editingBoard.id);
       message.success('Доска удалена');
@@ -388,13 +393,19 @@ export default function WorkspacePage() {
     }
   };
 
+  const handleLogout = () => {
+    // Clear localStorage and redirect to login
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
   // Filter tasks based on search and filters
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || task.status.id === filterStatus;
     const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
-    
+
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
@@ -411,204 +422,74 @@ export default function WorkspacePage() {
 
   return (
     <Layout className="min-h-screen">
-      <Sider 
-        trigger={null} 
-        collapsible 
-        collapsed={collapsed}
-        width={280}
-        className="bg-white border-r border-gray-200"
+      {/* Main Sidebar */}
+      <MainSidebar
+        collapsed={mainSidebarCollapsed}
+        onCollapse={setMainSidebarCollapsed}
+        organizations={organizations}
+        selectedOrganization={selectedOrganization}
+        onOrganizationChange={setSelectedOrganization}
+        onCreateOrganization={() => setIsOrganizationModalVisible(true)}
+        onEditOrganization={() => {
+          const org = organizations.find(o => o.id === selectedOrganization);
+          if (org) {
+            setEditingOrganization(org);
+            setIsOrganizationModalVisible(true);
+          }
+        }}
+        onLogout={handleLogout}
+        currentUser={{
+          name: 'Пользователь',
+          email: 'user@example.com'
+        }}
+      />
+
+      {/* Project Sidebar */}
+      <ProjectSidebar
+        collapsed={mainSidebarCollapsed}
+        projects={projects}
+        boards={boards}
+        selectedProject={selectedProject}
+        selectedBoard={selectedBoard}
+        onProjectChange={setSelectedProject}
+        onBoardChange={setSelectedBoard}
+        onCreateProject={() => setIsProjectModalVisible(true)}
+        onEditProject={() => {
+          const project = projects.find(p => p.id === selectedProject);
+          if (project) {
+            setEditingProject(project);
+            setIsProjectModalVisible(true);
+          }
+        }}
+        onCreateBoard={() => setIsBoardModalVisible(true)}
+        onEditBoard={() => {
+          const board = boards.find(b => b.id === selectedBoard);
+          if (board) {
+            setEditingBoard(board);
+            setIsBoardModalVisible(true);
+          }
+        }}
+        organizationSelected={!!selectedOrganization}
+      />
+
+      {/* Main Content */}
+      <Layout
+        className="main-content sidebar-transition"
+        style={{
+          marginLeft: selectedOrganization
+            ? (mainSidebarCollapsed ? 80 : 280) + 320
+            : (mainSidebarCollapsed ? 80 : 280) + 60,
+          minHeight: '100vh'
+        }}
       >
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className={`font-semibold text-gray-800 ${collapsed ? 'hidden' : 'block'}`}>
-              Рабочее пространство
-            </h2>
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-            />
-          </div>
-
-          {!collapsed && (
-            <>
-              {/* Organization Selector */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Организация</span>
-                  <Dropdown
-                    menu={{
-                      items: [
-                        {
-                          key: 'create',
-                          label: 'Создать организацию',
-                          icon: <PlusOutlined />,
-                          onClick: () => setIsOrganizationModalVisible(true),
-                        },
-                        {
-                          key: 'edit',
-                          label: 'Редактировать',
-                          icon: <SettingOutlined />,
-                          disabled: !selectedOrganization,
-                          onClick: () => {
-                            const org = organizations.find(o => o.id === selectedOrganization);
-                            if (org) {
-                              setEditingOrganization(org);
-                              setIsOrganizationModalVisible(true);
-                            }
-                          },
-                        },
-                      ],
-                    }}
-                    trigger={['click']}
-                  >
-                    <Button type="text" size="small" icon={<MoreOutlined />} />
-                  </Dropdown>
-                </div>
-                <Select
-                  value={selectedOrganization}
-                  onChange={setSelectedOrganization}
-                  placeholder="Выберите организацию"
-                  className="w-full"
-                  size="large"
-                >
-                  {organizations.map(org => (
-                    <Option key={org.id} value={org.id}>
-                      <div className="flex items-center">
-                        <TeamOutlined className="mr-2" />
-                        {org.name}
-                      </div>
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-
-              {/* Project Selector */}
-              {selectedOrganization && (
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Проект</span>
-                    <Dropdown
-                      menu={{
-                        items: [
-                          {
-                            key: 'create',
-                            label: 'Создать проект',
-                            icon: <PlusOutlined />,
-                            onClick: () => setIsProjectModalVisible(true),
-                          },
-                          {
-                            key: 'edit',
-                            label: 'Редактировать',
-                            icon: <SettingOutlined />,
-                            disabled: !selectedProject,
-                            onClick: () => {
-                              const project = projects.find(p => p.id === selectedProject);
-                              if (project) {
-                                setEditingProject(project);
-                                setIsProjectModalVisible(true);
-                              }
-                            },
-                          },
-                        ],
-                      }}
-                      trigger={['click']}
-                    >
-                      <Button type="text" size="small" icon={<MoreOutlined />} />
-                    </Dropdown>
-                  </div>
-                  <Select
-                    value={selectedProject}
-                    onChange={setSelectedProject}
-                    placeholder="Выберите проект"
-                    className="w-full"
-                    size="large"
-                  >
-                    {projects.map(project => (
-                      <Option key={project.id} value={project.id}>
-                        <div className="flex items-center">
-                          <ProjectOutlined className="mr-2" />
-                          {project.name}
-                        </div>
-                      </Option>
-                    ))}
-                  </Select>
-                </div>
-              )}
-
-              {/* Board Selector */}
-              {selectedProject && (
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Доска</span>
-                    <Dropdown
-                      menu={{
-                        items: [
-                          {
-                            key: 'create',
-                            label: 'Создать доску',
-                            icon: <PlusOutlined />,
-                            onClick: () => setIsBoardModalVisible(true),
-                          },
-                          {
-                            key: 'edit',
-                            label: 'Редактировать',
-                            icon: <SettingOutlined />,
-                            disabled: !selectedBoard,
-                            onClick: () => {
-                              const board = boards.find(b => b.id === selectedBoard);
-                              if (board) {
-                                setEditingBoard(board);
-                                setIsBoardModalVisible(true);
-                              }
-                            },
-                          },
-                        ],
-                      }}
-                      trigger={['click']}
-                    >
-                      <Button type="text" size="small" icon={<MoreOutlined />} />
-                    </Dropdown>
-                  </div>
-                  <Select
-                    value={selectedBoard}
-                    onChange={setSelectedBoard}
-                    placeholder="Выберите доску"
-                    className="w-full"
-                    size="large"
-                  >
-                    {boards.map(board => (
-                      <Option key={board.id} value={board.id}>
-                        {board.name}
-                      </Option>
-                    ))}
-                  </Select>
-                </div>
-              )}
-
-              {selectedProjectData && (
-                <Card size="small" className="mb-4">
-                  <div className="text-sm text-gray-600">
-                    <div>Участники: {selectedProjectData.memberCount}</div>
-                    <div>Доски: {selectedProjectData.boardCount}</div>
-                    <div>Теги: {selectedProjectData.tagCount}</div>
-                  </div>
-                </Card>
-              )}
-            </>
-          )}
-        </div>
-      </Sider>
-
-      <Layout>
-        <Content className="p-6">
+        <Content className="0">
           {!selectedProject || !selectedBoard ? (
             <div className="flex items-center justify-center h-96">
               <Empty
                 description={
-                  !selectedOrganization 
+                  !selectedOrganization
                     ? "Выберите организацию для начала работы"
-                    : !selectedProject 
+                    : !selectedProject
                     ? "Создайте или выберите проект"
                     : "Создайте или выберите доску для работы с задачами"
                 }
@@ -616,9 +497,9 @@ export default function WorkspacePage() {
               />
             </div>
           ) : (
-            <>
+            <div className="flex items-center justify-center flex-col h-full w-full overflow-y-auto">
               {/* Header */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center p-6 justify-between mb-6">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-800">
                     {selectedBoardData?.name || 'Доска'}
@@ -696,6 +577,10 @@ export default function WorkspacePage() {
                     setEditingTask(task);
                     setIsTaskModalVisible(true);
                   }}
+                  onCreateTask={(statusId) => {
+                    // Pre-fill with status when creating from specific column
+                    setIsTaskModalVisible(true);
+                  }}
                   onTaskStatusChange={handleTaskStatusChange}
                 />
               ) : (
@@ -706,7 +591,7 @@ export default function WorkspacePage() {
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
         </Content>
       </Layout>
@@ -716,8 +601,8 @@ export default function WorkspacePage() {
         visible={isTaskModalVisible}
         task={editingTask}
         statuses={statuses}
-        onSubmit={editingTask ? 
-          (data) => handleUpdateTask(editingTask.id, data) : 
+        onSubmit={editingTask ?
+          (data) => handleUpdateTask(editingTask.id, data) :
           handleCreateTask
         }
         onCancel={() => {
@@ -766,4 +651,4 @@ export default function WorkspacePage() {
       />
     </Layout>
   );
-} 
+}
