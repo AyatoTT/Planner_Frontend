@@ -81,7 +81,6 @@ export default function RootLayout({
             }}
           >
             <Layout className="min-h-screen">
-              <Header user={user} onLogout={handleLogout} />
               <Layout.Content className="flex-1">
                 {children}
               </Layout.Content>

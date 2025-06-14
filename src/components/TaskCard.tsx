@@ -23,18 +23,18 @@ const priorityColors = {
   LOW: '#6b7280',
   MEDIUM: '#f59e0b',
   HIGH: '#ef4444',
-  URGENT: '#dc2626'
+  CRITICAL: '#dc2626'
 };
 
 const priorityIcons = {
   LOW: null,
   MEDIUM: null,
   HIGH: <ExclamationCircleOutlined />,
-  URGENT: <ExclamationCircleOutlined />
+  CRITICAL: <ExclamationCircleOutlined />
 };
 
 export default function TaskCard({ task, onClick, showProject = false, className = '' }: TaskCardProps) {
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'DONE';
+  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !task.isCompleted;
   
   const handleClick = () => {
     if (onClick) {
@@ -44,7 +44,7 @@ export default function TaskCard({ task, onClick, showProject = false, className
 
   return (
     <Card 
-      className={`cursor-pointer hover:shadow-md transition-all duration-200 task-card ${className}`}
+      className={`cursor-pointer transition-all duration-200 task-card ${className}`}
       size="small"
       bodyStyle={{ padding: '16px' }}
       onClick={handleClick}
@@ -82,12 +82,12 @@ export default function TaskCard({ task, onClick, showProject = false, className
         <div className="mb-3">
           <Space size={[4, 4]} wrap>
             {task.tags.slice(0, 3).map((tag) => (
-              <Tag key={tag.id} size="small" className="text-xs">
+              <Tag key={tag.id} className="text-xs">
                 {tag.name}
               </Tag>
             ))}
             {task.tags.length > 3 && (
-              <Tag size="small" className="text-xs">
+              <Tag className="text-xs">
                 +{task.tags.length - 3}
               </Tag>
             )}
@@ -119,20 +119,20 @@ export default function TaskCard({ task, onClick, showProject = false, className
           )}
 
           {/* Checklist Progress */}
-          {task.checklists && task.checklists.length > 0 && (
+          {task.checklistCount > 0 && (
             <div className="flex items-center text-xs text-gray-500">
               <CheckCircleOutlined className="mr-1" />
               <span>
-                {task.checklists.filter(item => item.completed).length}/{task.checklists.length}
+                {task.completedChecklistCount}/{task.checklistCount}
               </span>
             </div>
           )}
 
           {/* Comments Count */}
-          {task.comments && task.comments.length > 0 && (
+          {task.commentCount > 0 && (
             <div className="flex items-center text-xs text-gray-500">
               <span className="mr-1">💬</span>
-              <span>{task.comments.length}</span>
+              <span>{task.commentCount}</span>
             </div>
           )}
         </div>
@@ -153,8 +153,8 @@ export default function TaskCard({ task, onClick, showProject = false, className
         </div>
       </div>
 
-      {/* Status indicator for list view */}
-      {task.status === 'DONE' && (
+      {/* Status indicator for completed tasks */}
+      {task.isCompleted && (
         <div className="absolute top-2 left-2">
           <CheckCircleOutlined className="text-green-500 text-sm" />
         </div>

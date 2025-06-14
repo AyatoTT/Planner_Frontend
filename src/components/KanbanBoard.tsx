@@ -193,7 +193,7 @@ export default function KanbanBoard({
                         transform transition-all duration-200 cursor-grab
                         ${isDragging 
                           ? 'opacity-40 scale-95 rotate-3 z-10' 
-                          : 'hover:scale-105 hover:shadow-lg hover:-translate-y-1'
+                          : 'hover:-translate-y-1'
                         }
                       `}
                       style={{

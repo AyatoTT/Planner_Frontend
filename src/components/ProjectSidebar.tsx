@@ -26,6 +26,8 @@ const { Panel } = Collapse;
 
 interface ProjectSidebarProps {
   collapsed: boolean;
+  sidebarCollapsed: boolean;
+  onSidebarCollapse: (collapsed: boolean) => void;
   projects: Project[];
   boards: Board[];
   selectedProject: string;
@@ -41,6 +43,8 @@ interface ProjectSidebarProps {
 
 export default function ProjectSidebar({
   collapsed,
+  sidebarCollapsed,
+  onSidebarCollapse,
   projects,
   boards,
   selectedProject,
@@ -55,7 +59,6 @@ export default function ProjectSidebar({
 }: ProjectSidebarProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeKeys, setActiveKeys] = useState<string[]>(['projects', 'boards']);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const selectedProjectData = projects.find(p => p.id === selectedProject);
   const selectedBoardData = boards.find(b => b.id === selectedBoard);
@@ -98,7 +101,7 @@ export default function ProjectSidebar({
       width={sidebarCollapsed ? 60 : 320}
       className="bg-gray-50 border-r border-gray-200 project-sidebar"
       style={{ 
-        marginLeft: collapsed ? 80 : 280,
+        marginLeft: !collapsed ? 280 : 80,
         height: '100vh',
         position: 'fixed',
         left: 0,
@@ -117,7 +120,7 @@ export default function ProjectSidebar({
             <Button
               type="text"
               icon={sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              onClick={() => onSidebarCollapse(!sidebarCollapsed)}
               className="hover:bg-gray-100"
               size="small"
             />

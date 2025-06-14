@@ -133,7 +133,7 @@ export default function MainSidebar({
                     </div>
 
                     {/* User Profile */}
-                    <div className="p-4 border-t border-gray-200">
+                    <div className="border-t border-gray-200">
                         {!collapsed && currentUser ? (
                             <Dropdown
                                 menu={{

@@ -568,4 +568,53 @@ body {
   .ant-card {
     margin: 8px 0;
   }
+}
+
+/* Status Manager Styles */
+.status-manager-modal .ant-modal-body {
+  padding: 24px;
+}
+
+.status-manager-modal .ant-card {
+  border-radius: 8px;
+}
+
+.status-manager-modal .ant-form-item {
+  margin-bottom: 16px;
+}
+
+/* Drag and drop styles for status manager */
+.sortable-status-item {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sortable-status-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sortable-status-item.dragging {
+  transform: rotate(5deg);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+/* Color picker styles */
+.ant-color-picker {
+  width: 120px;
+}
+
+/* Status manager responsive */
+@media (max-width: 768px) {
+  .status-manager-modal {
+    width: 90% !important;
+    max-width: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .status-manager-modal {
+    width: 95% !important;
+    margin: 10px;
+  }
 } 

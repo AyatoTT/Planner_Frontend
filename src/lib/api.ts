@@ -183,6 +183,11 @@ export const boardsApi = {
   deleteStatus: async (boardId: string, statusId: string) => {
     await api.delete(`/boards/${boardId}/statuses/${statusId}`);
   },
+
+  reorderStatuses: async (boardId: string, statusOrders: Array<{ statusId: string; orderIndex: number }>) => {
+    const response = await api.patch(`/boards/${boardId}/statuses/reorder`, { statusOrders });
+    return response.data;
+  },
 };
 
 // Tasks API
