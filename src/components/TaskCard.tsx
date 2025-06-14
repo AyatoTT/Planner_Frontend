@@ -26,6 +26,13 @@ const priorityColors = {
   CRITICAL: '#dc2626'
 };
 
+const priorityLabels = {
+  LOW: 'Низкий',
+  MEDIUM: 'Средний',
+  HIGH: 'Высокий',
+  CRITICAL: 'Критический'
+};
+
 const priorityIcons = {
   LOW: null,
   MEDIUM: null,
@@ -63,7 +70,7 @@ export default function TaskCard({ task, onClick, showProject = false, className
             icon={priorityIcons[task.priority]}
             className="text-xs font-medium"
           >
-            {task.priority}
+            {priorityLabels[task.priority]}
           </Tag>
         </div>
       </div>

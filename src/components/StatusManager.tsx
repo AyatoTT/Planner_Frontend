@@ -13,7 +13,8 @@ import {
     Space,
     Typography,
     Card,
-    Tooltip
+    Tooltip,
+    Checkbox
 } from 'antd';
 import {
     PlusOutlined,
@@ -21,7 +22,8 @@ import {
     DeleteOutlined,
     DragOutlined,
     CheckOutlined,
-    CloseOutlined
+    CloseOutlined,
+    CrownOutlined
 } from '@ant-design/icons';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -66,7 +68,9 @@ function SortableStatusItem({ status, onEdit, onDelete }: SortableStatusItemProp
         <div ref={setNodeRef} style={style} {...attributes}>
             <Card
                 size="small"
-                className={`mb-2 ${isDragging ? 'shadow-lg' : 'shadow-sm'} hover:shadow-md transition-shadow`}
+                className={`mb-2 ${isDragging ? 'shadow-lg' : 'shadow-sm'} hover:shadow-md transition-shadow ${
+                    status.isFinal ? 'border-green-300 bg-green-50' : ''
+                }`}
                 bodyStyle={{ padding: '12px' }}
             >
                 <div className="flex items-center justify-between">
@@ -84,16 +88,23 @@ function SortableStatusItem({ status, onEdit, onDelete }: SortableStatusItemProp
                         />
                         
                         <div className="flex-1">
-                            <Text strong>{status.name}</Text>
+                            <div className="flex items-center space-x-2">
+                                <Text strong className={status.isFinal ? 'text-green-700' : ''}>
+                                    {status.name}
+                                </Text>
+                                {status.isFinal && (
+                                    <CrownOutlined className="text-green-600" title="Финальный статус" />
+                                )}
+                            </div>
                             <div className="text-xs text-gray-500">
-                                Order: {status.orderIndex}
-                                {status.isFinal && ' • Final Status'}
+                                Порядок: {status.orderIndex}
+                                {status.isFinal && ' • Финальный статус'}
                             </div>
                         </div>
                     </div>
 
                     <Space>
-                        <Tooltip title="Edit Status">
+                        <Tooltip title="Редактировать">
                             <Button
                                 type="text"
                                 size="small"
@@ -104,11 +115,11 @@ function SortableStatusItem({ status, onEdit, onDelete }: SortableStatusItemProp
                         </Tooltip>
                         
                         <Popconfirm
-                            title="Delete Status"
-                            description="Are you sure you want to delete this status? This action cannot be undone."
+                            title="Удалить статус"
+                            description="Вы уверены, что хотите удалить этот статус? Это действие невозможно отменить."
                             onConfirm={() => onDelete(status.id)}
-                            okText="Delete"
-                            cancelText="Cancel"
+                            okText="Удалить"
+                            cancelText="Отменить"
                             okButtonProps={{ danger: true }}
                         >
                             <Tooltip title="Delete Status">
@@ -190,6 +201,7 @@ export default function StatusManager({ visible, onCancel, boardId, statuses, on
                 const updatedStatus = await boardsApi.updateStatus(boardId, editingStatus.id, {
                     name: values.name,
                     color: values.color?.toHexString?.() || values.color,
+                    isFinal: values.isFinal || false,
                 });
 
                 const newStatuses = localStatuses.map(status =>
@@ -203,7 +215,8 @@ export default function StatusManager({ visible, onCancel, boardId, statuses, on
                 const newStatus = await boardsApi.createStatus(boardId, {
                     name: values.name,
                     color: values.color?.toHexString?.() || values.color || '#6B7280',
-                    orderIndex: localStatuses.length
+                    orderIndex: localStatuses.length,
+                    isFinal: values.isFinal || false
                 });
 
                 const newStatuses = [...localStatuses, newStatus];
@@ -227,7 +240,8 @@ export default function StatusManager({ visible, onCancel, boardId, statuses, on
         setEditingStatus(status);
         form.setFieldsValue({
             name: status.name,
-            color: status.color
+            color: status.color,
+            isFinal: status.isFinal
         });
         setIsFormVisible(true);
     };
@@ -266,12 +280,12 @@ export default function StatusManager({ visible, onCancel, boardId, statuses, on
 
     return (
         <Modal
-            title="Manage Board Statuses"
+            title="Управление статусами"
             open={visible}
             onCancel={handleCancel}
             footer={[
                 <Button key="cancel" onClick={handleCancel}>
-                    Close
+                    Отменить
                 </Button>
             ]}
             width={600}
@@ -280,14 +294,14 @@ export default function StatusManager({ visible, onCancel, boardId, statuses, on
             <div className="space-y-4">
                 {/* Add New Status Button */}
                 <div className="flex justify-between items-center">
-                    <Text strong>Board Statuses ({localStatuses.length})</Text>
+                    <Text strong>Статусы ({localStatuses.length})</Text>
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
                         onClick={handleAddNew}
                         disabled={isFormVisible}
                     >
-                        Add Status
+                        Добавить статус
                     </Button>
                 </div>
 
@@ -302,28 +316,46 @@ export default function StatusManager({ visible, onCancel, boardId, statuses, on
                             <div className="flex gap-4">
                                 <Form.Item
                                     name="name"
-                                    label="Status Name"
+                                    label="Название"
                                     rules={[
-                                        { required: true, message: 'Please enter status name' },
-                                        { max: 100, message: 'Name must not exceed 100 characters' }
+                                        { required: true, message: 'Пожалуйста, введите название статуса' },
+                                        { max: 100, message: 'Имя не должно быть больше 100 символов' }
                                     ]}
                                     className="flex-1"
                                 >
-                                    <Input placeholder="Enter status name" />
+                                    <Input placeholder="Введите название статуса" />
                                 </Form.Item>
 
                                 <Form.Item
                                     name="color"
-                                    label="Color"
+                                    label="Цвет"
                                     initialValue="#6B7280"
                                 >
                                     <ColorPicker showText />
                                 </Form.Item>
                             </div>
 
+                            <Form.Item
+                                name="isFinal"
+                                valuePropName="checked"
+                                initialValue={false}
+                            >
+                                <Checkbox>
+                                    Финальный статус (задачи с этим статусом считаются завершенными)
+                                </Checkbox>
+                            </Form.Item>
+
+                            {/* Warning about final status */}
+                            <div className="text-xs text-amber-600 bg-amber-50 p-3 rounded border border-amber-200">
+                                <Text>
+                                    ⚠️ <strong>Важно:</strong> На доске может быть только один финальный статус. 
+                                    При назначении нового финального статуса, предыдущий автоматически перестанет быть финальным.
+                                </Text>
+                            </div>
+
                             <div className="flex justify-end space-x-2">
                                 <Button onClick={handleFormCancel}>
-                                    Cancel
+                                    Отменить
                                 </Button>
                                 <Button
                                     type="primary"
@@ -331,7 +363,7 @@ export default function StatusManager({ visible, onCancel, boardId, statuses, on
                                     loading={loading}
                                     icon={editingStatus ? <CheckOutlined /> : <PlusOutlined />}
                                 >
-                                    {editingStatus ? 'Update' : 'Create'} Status
+                                    {editingStatus ? 'Обновить' : 'Создать'}
                                 </Button>
                             </div>
                         </Form>
@@ -342,7 +374,7 @@ export default function StatusManager({ visible, onCancel, boardId, statuses, on
                 <div className="max-h-96 overflow-y-auto">
                     {localStatuses.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
-                            <Text>No statuses found. Create your first status to get started.</Text>
+                            <Text>Создайте статус</Text>
                         </div>
                     ) : (
                         <DndContext
@@ -372,8 +404,8 @@ export default function StatusManager({ visible, onCancel, boardId, statuses, on
                 {/* Help Text */}
                 <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded">
                     <Text>
-                        💡 <strong>Tips:</strong> Drag and drop statuses to reorder them. 
-                        The order will be reflected in your Kanban board columns.
+                        💡 <strong>Подсказка:</strong> Перетаскивайте статусы, чтобы изменить их порядок.
+                        Порядок будет отражен в столбцах вашей доски Канбан.
                     </Text>
                 </div>
             </div>

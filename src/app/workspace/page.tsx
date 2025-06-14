@@ -126,10 +126,10 @@ export default function WorkspacePage() {
                 : allProjects;
             setProjects(filteredProjects);
 
-            // Auto-select first project if available
-            if (filteredProjects.length > 0) {
+            // Only auto-select first project if no project is currently selected
+            if (filteredProjects.length > 0 && !selectedProject) {
                 setSelectedProject(filteredProjects[0].id);
-            } else {
+            } else if (filteredProjects.length === 0) {
                 setSelectedProject('');
             }
         } catch (error) {
@@ -145,13 +145,8 @@ export default function WorkspacePage() {
             const response = await projectsApi.getBoards(projectId);
             setBoards(response.data || response);
 
-            // Auto-select first board if available
-            if (response.data?.length > 0 || response.length > 0) {
-                const boardsList = response.data || response;
-                setSelectedBoard(boardsList[0].id);
-            } else {
-                setSelectedBoard('');
-            }
+            // Don't auto-select board to allow user to create new ones
+            setSelectedBoard('');
         } catch (error) {
             console.error('Failed to load boards:', error);
             message.error('Не удалось загрузить доски');
@@ -188,11 +183,12 @@ export default function WorkspacePage() {
             await tasksApi.create({
                 ...taskData,
                 boardId: selectedBoard,
-                statusId: statuses[0]?.id || '', // Default to first status
+                statusId: taskData.statusId || statuses[0]?.id || '', // Use provided statusId or default to first status
             });
 
             message.success('Задача создана');
             setIsTaskModalVisible(false);
+            setEditingTask(null);
 
             // Reload tasks
             if (selectedProject && selectedBoard) {
@@ -297,13 +293,18 @@ export default function WorkspacePage() {
 
     const handleCreateProject = async (data: { name: string; description?: string; organizationId: string }) => {
         try {
-            await projectsApi.create({
+            const response = await projectsApi.create({
                 ...data,
                 organizationId: selectedOrganization,
             });
+            
+            const newProject = response.data || response;
             message.success('Проект создан');
             setIsProjectModalVisible(false);
-            loadProjects();
+            
+            // Reload projects and select the new one
+            await loadProjects();
+            setSelectedProject(newProject.id);
         } catch (error) {
             console.error('Failed to create project:', error);
             message.error('Не удалось создать проект');
@@ -350,13 +351,19 @@ export default function WorkspacePage() {
         }
 
         try {
-            await boardsApi.create({
+            const response = await boardsApi.create({
                 ...data,
                 projectId: selectedProject,
+                viewType: data.viewType || 'KANBAN'
             });
+            
+            const newBoard = response.data || response;
             message.success('Доска создана');
             setIsBoardModalVisible(false);
-            loadBoards(selectedProject);
+            
+            // Reload boards and select the new one
+            await loadBoards(selectedProject);
+            setSelectedBoard(newBoard.id);
         } catch (error) {
             console.error('Failed to create board:', error);
             message.error('Не удалось создать доску');
@@ -448,163 +455,187 @@ export default function WorkspacePage() {
                 }}
             />
 
-            {/* Project Sidebar */}
-            <ProjectSidebar
-                collapsed={mainSidebarCollapsed}
-                sidebarCollapsed={projectSidebarCollapsed}
-                onSidebarCollapse={setProjectSidebarCollapsed}
-                projects={projects}
-                boards={boards}
-                selectedProject={selectedProject}
-                selectedBoard={selectedBoard}
-                onProjectChange={setSelectedProject}
-                onBoardChange={setSelectedBoard}
-                onCreateProject={() => setIsProjectModalVisible(true)}
-                onEditProject={() => {
-                    const project = projects.find(p => p.id === selectedProject);
-                    if (project) {
-                        setEditingProject(project);
-                        setIsProjectModalVisible(true);
-                    }
-                }}
-                onCreateBoard={() => setIsBoardModalVisible(true)}
-                onEditBoard={() => {
-                    const board = boards.find(b => b.id === selectedBoard);
-                    if (board) {
-                        setEditingBoard(board);
-                        setIsBoardModalVisible(true);
-                    }
-                }}
-                organizationSelected={!!selectedOrganization}
-            />
-
             {/* Main Content */}
             <Layout
                 className="main-content sidebar-transition"
                 style={{
                     marginLeft: selectedOrganization
-                        ? (mainSidebarCollapsed ? 80 : 280) + (projectSidebarCollapsed ? 60 : 325)
-                        : (mainSidebarCollapsed ? 80 : 280) + 60,
+                        ? (mainSidebarCollapsed ? 80 : 280)
+                        : (mainSidebarCollapsed ? 80 : 280),
                     minHeight: '100vh'
                 }}
             >
                 <Content className="0" style={{width: '100%'}}>
-                    {!selectedProject || !selectedBoard ? (
+                    {!selectedProject ? (
                         <div className="flex items-center justify-center h-96">
                             <Empty
                                 description={
                                     !selectedOrganization
                                         ? "Выберите организацию для начала работы"
-                                        : !selectedProject
-                                            ? "Создайте или выберите проект"
-                                            : "Создайте или выберите доску для работы с задачами"
+                                        : "Создайте или выберите проект"
                                 }
                                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                             />
                         </div>
                     ) : (
                         <div className="flex items-center justify-center flex-col h-full overflow-y-auto">
-                            {/* Header */}
-                            <div style={{width: '100%'}} className="flex items-start flex-col p-6 justify-between mb-6">
-                                <div>
-                                    <h1 className="text-2xl font-bold text-gray-800">
-                                        {selectedBoardData?.name || 'Доска'}
-                                    </h1>
-                                    <p className="text-gray-600">
-                                        {selectedProjectData?.name} • {filteredTasks.length} задач
-                                    </p>
-                                </div>
+                            <div className="flex gap-2 w-full h-full">
+                                {/* Project Sidebar */}
+                                <ProjectSidebar
+                                    collapsed={mainSidebarCollapsed}
+                                    sidebarCollapsed={projectSidebarCollapsed}
+                                    onSidebarCollapse={setProjectSidebarCollapsed}
+                                    projects={projects}
+                                    boards={boards}
+                                    selectedProject={selectedProject}
+                                    selectedBoard={selectedBoard}
+                                    onProjectChange={setSelectedProject}
+                                    onBoardChange={setSelectedBoard}
+                                    onCreateProject={() => setIsProjectModalVisible(true)}
+                                    onEditProject={() => {
+                                        const project = projects.find(p => p.id === selectedProject);
+                                        if (project) {
+                                            setEditingProject(project);
+                                            setIsProjectModalVisible(true);
+                                        }
+                                    }}
+                                    onCreateBoard={() => setIsBoardModalVisible(true)}
+                                    onEditBoard={() => {
+                                        const board = boards.find(b => b.id === selectedBoard);
+                                        if (board) {
+                                            setEditingBoard(board);
+                                            setIsBoardModalVisible(true);
+                                        }
+                                    }}
+                                    organizationSelected={!!selectedOrganization}
+                                />
+                                
+                                {/* Main Content Area */}
+                                <div className="flex-1 flex flex-col h-full">
+                                    {!selectedBoard ? (
+                                        <div className="flex items-center justify-center h-full">
+                                            <Empty
+                                                description="Создайте или выберите доску для работы с задачами"
+                                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                            >
+                                                <Button 
+                                                    type="primary" 
+                                                    icon={<PlusOutlined />}
+                                                    onClick={() => setIsBoardModalVisible(true)}
+                                                >
+                                                    Создать доску
+                                                </Button>
+                                            </Empty>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {/* Header */}
+                                            <div className="flex items-start gap-6 flex-col p-6 justify-between mb-6">
+                                                <div>
+                                                    <h1 className="text-2xl font-bold text-gray-800">
+                                                        {selectedBoardData?.name || 'Доска'}
+                                                    </h1>
+                                                    <p className="text-gray-600">
+                                                        {selectedProjectData?.name} • {filteredTasks.length} задач
+                                                    </p>
+                                                </div>
 
-                                <div className="flex items-center justify-center w-full  space-x-4">
-                                    <Input
-                                        placeholder="Поиск задач..."
-                                        prefix={<SearchOutlined/>}
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-64"
-                                    />
+                                                <div className="flex items-center justify-start w-full space-x-4">
+                                                    <Input
+                                                        placeholder="Поиск задач..."
+                                                        prefix={<SearchOutlined/>}
+                                                        value={searchTerm}
+                                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                                        className="w-64"
+                                                    />
 
-                                    <Select
-                                        value={filterStatus}
-                                        onChange={setFilterStatus}
-                                        placeholder="Статус"
-                                        className="w-32"
-                                    >
-                                        <Option value="all">Все</Option>
-                                        {statuses.map(status => (
-                                            <Option key={status.id} value={status.id}>
-                                                {status.name}
-                                            </Option>
-                                        ))}
-                                    </Select>
+                                                    <Select
+                                                        value={filterStatus}
+                                                        onChange={setFilterStatus}
+                                                        placeholder="Статус"
+                                                        className="w-32"
+                                                    >
+                                                        <Option value="all">Все</Option>
+                                                        {statuses.map(status => (
+                                                            <Option key={status.id} value={status.id}>
+                                                                {status.name}
+                                                            </Option>
+                                                        ))}
+                                                    </Select>
 
-                                    <Select
-                                        value={filterPriority}
-                                        onChange={setFilterPriority}
-                                        placeholder="Приоритет"
-                                        className="w-32"
-                                    >
-                                        <Option value="all">Все</Option>
-                                        <Option value="LOW">Низкий</Option>
-                                        <Option value="MEDIUM">Средний</Option>
-                                        <Option value="HIGH">Высокий</Option>
-                                        <Option value="CRITICAL">Критический</Option>
-                                    </Select>
+                                                    <Select
+                                                        value={filterPriority}
+                                                        onChange={setFilterPriority}
+                                                        placeholder="Приоритет"
+                                                        className="w-32"
+                                                    >
+                                                        <Option value="all">Все</Option>
+                                                        <Option value="LOW">Низкий</Option>
+                                                        <Option value="MEDIUM">Средний</Option>
+                                                        <Option value="HIGH">Высокий</Option>
+                                                        <Option value="CRITICAL">Критический</Option>
+                                                    </Select>
 
-                                    <Button.Group>
-                                        <Button
-                                            type={viewMode === 'kanban' ? 'primary' : 'default'}
-                                            icon={<AppstoreOutlined/>}
-                                            onClick={() => setViewMode('kanban')}
-                                        />
-                                        <Button
-                                            type={viewMode === 'list' ? 'primary' : 'default'}
-                                            icon={<UnorderedListOutlined/>}
-                                            onClick={() => setViewMode('list')}
-                                        />
-                                    </Button.Group>
+                                                    <Button.Group>
+                                                        <Button
+                                                            type={viewMode === 'kanban' ? 'primary' : 'default'}
+                                                            icon={<AppstoreOutlined/>}
+                                                            onClick={() => setViewMode('kanban')}
+                                                        />
+                                                        <Button
+                                                            type={viewMode === 'list' ? 'primary' : 'default'}
+                                                            icon={<UnorderedListOutlined/>}
+                                                            onClick={() => setViewMode('list')}
+                                                        />
+                                                    </Button.Group>
 
-                                    <Button
-                                        icon={<SettingOutlined/>}
-                                        onClick={() => setIsStatusManagerVisible(true)}
-                                        title="Manage Statuses"
-                                    >
-                                        Статусы
-                                    </Button>
+                                                    <Button
+                                                        icon={<SettingOutlined/>}
+                                                        onClick={() => setIsStatusManagerVisible(true)}
+                                                        title="Manage Statuses"
+                                                    >
+                                                        Статусы
+                                                    </Button>
 
-                                    <Button
-                                        type="primary"
-                                        icon={<PlusOutlined/>}
-                                        onClick={() => setIsTaskModalVisible(true)}
-                                    >
-                                        Создать задачу
-                                    </Button>
+                                                    <Button
+                                                        type="primary"
+                                                        icon={<PlusOutlined/>}
+                                                        onClick={() => setIsTaskModalVisible(true)}
+                                                    >
+                                                        Создать задачу
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            {/* Board Content */}
+                                            <div className="flex-1 px-6">
+                                                {viewMode === 'kanban' ? (
+                                                    <KanbanBoard
+                                                        tasks={filteredTasks}
+                                                        statuses={statuses}
+                                                        onTaskClick={(task) => {
+                                                            setEditingTask(task);
+                                                            setIsTaskModalVisible(true);
+                                                        }}
+                                                        onCreateTask={(statusId) => {
+                                                            // Pre-fill with status when creating from specific column
+                                                            setIsTaskModalVisible(true);
+                                                        }}
+                                                        onTaskStatusChange={handleTaskStatusChange}
+                                                    />
+                                                ) : (
+                                                    <div className="bg-white rounded-lg shadow">
+                                                        {/* List view implementation */}
+                                                        <div className="p-4">
+                                                            <p className="text-gray-500">Список задач (в разработке)</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
-
-                            {/* Content */}
-                            {viewMode === 'kanban' ? (
-                                <KanbanBoard
-                                    tasks={filteredTasks}
-                                    statuses={statuses}
-                                    onTaskClick={(task) => {
-                                        setEditingTask(task);
-                                        setIsTaskModalVisible(true);
-                                    }}
-                                    onCreateTask={(statusId) => {
-                                        // Pre-fill with status when creating from specific column
-                                        setIsTaskModalVisible(true);
-                                    }}
-                                    onTaskStatusChange={handleTaskStatusChange}
-                                />
-                            ) : (
-                                <div className="bg-white rounded-lg shadow">
-                                    {/* List view implementation */}
-                                    <div className="p-4">
-                                        <p className="text-gray-500">Список задач (в разработке)</p>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     )}
                 </Content>

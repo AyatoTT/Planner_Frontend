@@ -79,7 +79,6 @@ export default function ProjectSidebar({
         style={{ 
           marginLeft: collapsed ? 80 : 280,
           height: '100vh',
-          position: 'fixed',
           left: 0,
           top: 0,
           zIndex: 90,
@@ -100,12 +99,14 @@ export default function ProjectSidebar({
     <Sider 
       width={sidebarCollapsed ? 60 : 320}
       className="bg-gray-50 border-r border-gray-200 project-sidebar"
-      style={{ 
-        marginLeft: !collapsed ? 280 : 80,
+      style={{
+        marginLeft: collapsed
+            ? (sidebarCollapsed ? 80 : 10)
+            : (sidebarCollapsed ? 0 : 0),
         height: '100vh',
-        position: 'fixed',
         left: 0,
         top: 0,
+        boxShadow: 'none',
         zIndex: 90,
         transition: 'all 0.3s ease'
       }}

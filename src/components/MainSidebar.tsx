@@ -108,7 +108,7 @@ export default function MainSidebar({
             collapsible
             collapsed={collapsed}
             width={280}
-            className="bg-white border-r border-gray-200 shadow-sm main-sidebar"
+            className="bg-white border-r border-gray-200 main-sidebar"
             style={{height: '100vh', position: 'fixed', left: 0, top: 0, zIndex: 100}}
         >
             <div className="flex flex-col h-full">
@@ -223,32 +223,6 @@ export default function MainSidebar({
                             {!collapsed && 'Настройки'}
                         </Menu.Item>
                     </Menu>
-
-                    {!collapsed && (
-                        <>
-                            <Divider className="my-4 mx-4"/>
-
-                            <div className="px-4 space-y-2">
-                                <Button
-                                    type="text"
-                                    icon={<BellOutlined/>}
-                                    size="small"
-                                    className="w-full justify-start hover:bg-gray-100 text-gray-600"
-                                >
-                                    Уведомления
-                                </Button>
-
-                                <Button
-                                    type="text"
-                                    icon={<QuestionCircleOutlined/>}
-                                    size="small"
-                                    className="w-full justify-start hover:bg-gray-100 text-gray-600"
-                                >
-                                    Помощь
-                                </Button>
-                            </div>
-                        </>
-                    )}
                 </div>
 
 
@@ -267,7 +241,8 @@ export default function MainSidebar({
                     >
                         <Card
                             hoverable
-                            className="mb-4 cursor-pointer border-dashed border-blue-200 hover:border-blue-400 transition-all duration-200"
+                            style={{ borderRadius: '0', boxShadow: 'none'}}
+                            className="cursor-pointer border-dashed border-blue-200 hover:border-blue-400 transition-all duration-200"
                             bodyStyle={{padding: '12px'}}
                         >
                             <div className="flex items-center space-x-3">
@@ -296,9 +271,10 @@ export default function MainSidebar({
                             </div>
 
                             <div className="mt-3 pt-2 border-t border-gray-100">
-                                <div className="flex items-center justify-between text-xs">
+                                <div className="flex flex-col items-start gap-1 justify-between text-xs">
                                     <Badge
                                         status="processing"
+                                        size='small'
                                         text="Активная организация"
                                         className="text-blue-600"
                                     />

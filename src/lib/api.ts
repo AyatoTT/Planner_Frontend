@@ -170,12 +170,12 @@ export const boardsApi = {
     return response.data;
   },
 
-  createStatus: async (boardId: string, data: { name: string; color?: string; orderIndex: number }) => {
+  createStatus: async (boardId: string, data: { name: string; color?: string; orderIndex: number; isFinal?: boolean }) => {
     const response = await api.post(`/boards/${boardId}/statuses`, data);
     return response.data;
   },
 
-  updateStatus: async (boardId: string, statusId: string, data: { name?: string; color?: string; orderIndex?: number }) => {
+  updateStatus: async (boardId: string, statusId: string, data: { name?: string; color?: string; orderIndex?: number; isFinal?: boolean }) => {
     const response = await api.put(`/boards/${boardId}/statuses/${statusId}`, data);
     return response.data;
   },
