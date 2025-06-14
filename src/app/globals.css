@@ -1,0 +1,225 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Global styles */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #1f2937;
+  background-color: #f9fafb;
+}
+
+/* Ant Design overrides */
+.ant-layout {
+  min-height: 100vh;
+}
+
+.ant-layout-sider {
+  box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
+}
+
+.ant-menu-item {
+  border-radius: 8px !important;
+  margin: 4px 8px !important;
+  width: auto !important;
+}
+
+.ant-menu-item-selected {
+  background-color: #e0f2fe !important;
+  color: #0369a1 !important;
+}
+
+.ant-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ant-card {
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.ant-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.ant-tag {
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Task card styles */
+.task-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.task-card:hover {
+  border-color: #0ea5e9;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+  transform: translateY(-1px);
+}
+
+.task-card.dragging {
+  opacity: 0.8;
+  transform: rotate(5deg);
+  z-index: 1000;
+}
+
+/* Kanban column styles */
+.kanban-column {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 600px;
+  width: 280px;
+  border: 2px dashed transparent;
+  transition: all 0.2s ease;
+}
+
+.kanban-column.drag-over {
+  border-color: #0ea5e9;
+  background: #f0f9ff;
+}
+
+/* Priority indicators */
+.priority-critical {
+  color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.priority-high {
+  color: #ea580c;
+  background-color: #fff7ed;
+}
+
+.priority-medium {
+  color: #0ea5e9;
+  background-color: #f0f9ff;
+}
+
+.priority-low {
+  color: #16a34a;
+  background-color: #f0fdf4;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f4f6;
+  border-radius: 50%;
+  border-top-color: #0ea5e9;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .ant-layout-sider {
+    position: fixed !important;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .ant-layout-sider.mobile-open {
+    transform: translateX(0);
+  }
+
+  .kanban-column {
+    width: 260px;
+  }
+
+  .ant-card {
+    margin: 8px 0;
+  }
+} 
