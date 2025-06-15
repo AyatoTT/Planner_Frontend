@@ -28,7 +28,7 @@ export default function LoginPage() {
     
     try {
       const response = await authApi.login(values);
-      tokenManager.setToken(response.access_token);
+      tokenManager.setToken(response.accessToken);
       router.push('/workspace');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');

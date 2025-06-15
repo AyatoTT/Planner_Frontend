@@ -466,7 +466,7 @@ export default function WorkspacePage() {
                 }}
             >
                 <Content className="0" style={{width: '100%'}}>
-                    {!selectedProject ? (
+                    {!selectedOrganization ? (
                         <div className="flex items-center justify-center h-96">
                             <Empty
                                 description={
@@ -478,7 +478,7 @@ export default function WorkspacePage() {
                             />
                         </div>
                     ) : (
-                        <div className="flex items-center justify-center flex-col h-full overflow-y-auto">
+                        <div className="flex items-center justify-center flex-col h-full">
                             <div className="flex gap-2 w-full h-full">
                                 {/* Project Sidebar */}
                                 <ProjectSidebar
@@ -511,7 +511,7 @@ export default function WorkspacePage() {
                                 />
                                 
                                 {/* Main Content Area */}
-                                <div className="flex-1 flex flex-col h-full">
+                                <div className="flex-1 flex flex-col h-full w-full overflow-auto">
                                     {!selectedBoard ? (
                                         <div className="flex items-center justify-center h-full">
                                             <Empty
@@ -530,7 +530,7 @@ export default function WorkspacePage() {
                                     ) : (
                                         <>
                                             {/* Header */}
-                                            <div className="flex items-start gap-6 flex-col p-6 justify-between mb-6">
+                                            <div className="flex items-start gap-6 flex-col p-6 justify-between mb-6 overflow-hidden">
                                                 <div>
                                                     <h1 className="text-2xl font-bold text-gray-800">
                                                         {selectedBoardData?.name || 'Доска'}

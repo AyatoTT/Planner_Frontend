@@ -100,9 +100,6 @@ export default function ProjectSidebar({
       width={sidebarCollapsed ? 60 : 320}
       className="bg-gray-50 border-r border-gray-200 project-sidebar"
       style={{
-        marginLeft: collapsed
-            ? (sidebarCollapsed ? 80 : 10)
-            : (sidebarCollapsed ? 0 : 0),
         height: '100vh',
         left: 0,
         top: 0,
@@ -498,27 +495,6 @@ export default function ProjectSidebar({
             </div>
           )}
         </div>
-
-        {/* Selected Project/Board Info */}
-        {!sidebarCollapsed && selectedProjectData && (
-          <div className="p-4 bg-white border-t border-gray-200">
-            <div className="text-xs text-gray-500 mb-2">Активный проект</div>
-            <div className="flex items-center space-x-2 mb-2">
-              <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <span className="font-medium text-sm truncate">{selectedProjectData.name}</span>
-            </div>
-            
-            {selectedBoardData && (
-              <>
-                <div className="text-xs text-gray-500 mb-1 mt-3">Активная доска</div>
-                <div className="flex items-center space-x-2">
-                  <AppstoreOutlined className="text-green-500 text-sm" />
-                  <span className="font-medium text-sm truncate">{selectedBoardData.name}</span>
-                </div>
-              </>
-            )}
-          </div>
-        )}
       </div>
     </Sider>
   );
